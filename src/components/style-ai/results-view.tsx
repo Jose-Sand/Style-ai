@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { G, SECTIONS, type SectionDef } from "@/lib/style-ai/constants";
+import { ProductGrid } from "@/components/products/ProductGrid";
+import type { ScrapedProduct } from "@/lib/scrapers/types";
 import type { ResultItem as ResultItemT, StyleReportResult } from "@/types/database";
+
+interface ProductRecommendations {
+  ropa: ScrapedProduct[];
+  zapatos: ScrapedProduct[];
+  accesorios: ScrapedProduct[];
+}
 
 const serifFont = "'Cormorant Garamond', Georgia, serif";
 
@@ -58,9 +66,48 @@ function ResultItem({
   );
 }
 
-export function ResultsView({ results }: { results: StyleReportResult }) {
+export function ResultsView({
+  results,
+  showProducts = false,
+  gender,
+}: {
+  results: StyleReportResult;
+  showProducts?: boolean;
+  gender?: "masculino" | "femenino";
+}) {
   const [activeSection, setActiveSection] =
     useState<SectionDef["id"]>("fisico");
+
+  const [products, setProducts] = useState<ProductRecommendations | null>(null);
+  const [productsError, setProductsError] = useState(false);
+  const [productsLoading, setProductsLoading] = useState(showProducts);
+
+  useEffect(() => {
+    if (!showProducts) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const resp = await fetch("/api/products/recommend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ result: results, gender }),
+        });
+        if (!resp.ok) throw new Error("request failed");
+        const data = (await resp.json()) as ProductRecommendations;
+        if (!cancelled) setProducts(data);
+      } catch {
+        if (!cancelled) setProductsError(true);
+      } finally {
+        if (!cancelled) setProductsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showProducts]);
 
   const card = {
     background: G.bgCard,
@@ -179,6 +226,18 @@ export function ResultsView({ results }: { results: StyleReportResult }) {
             {results.skincare.items.map((item, i) => (
               <ResultItem key={i} item={item} accentColor={SECTIONS[1].color} />
             ))}
+            {showProducts && (
+              <p
+                style={{
+                  marginTop: 16,
+                  fontSize: 12,
+                  color: G.muted,
+                  fontStyle: "italic",
+                }}
+              >
+                Integración de productos skincare próximamente.
+              </p>
+            )}
           </>
         )}
 
@@ -368,6 +427,37 @@ export function ResultsView({ results }: { results: StyleReportResult }) {
             {results.ropa.items.map((item, i) => (
               <ResultItem key={i} item={item} accentColor={SECTIONS[4].color} />
             ))}
+
+            {showProducts && (
+              <div style={{ marginTop: 24 }}>
+                <div
+                  style={{
+                    borderTop: `1px solid ${G.border}`,
+                    paddingTop: 20,
+                    marginBottom: 4,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: G.gold,
+                  }}
+                >
+                  🇨🇴 Productos para ti en Colombia
+                </div>
+                <ProductGrid
+                  title="Ropa"
+                  products={products?.ropa ?? []}
+                  loading={productsLoading}
+                  error={productsError ? "error" : undefined}
+                />
+                {(productsLoading || (products?.zapatos.length ?? 0) > 0) && (
+                  <ProductGrid
+                    title="Zapatos"
+                    products={products?.zapatos ?? []}
+                    loading={productsLoading}
+                    error={productsError ? "error" : undefined}
+                  />
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

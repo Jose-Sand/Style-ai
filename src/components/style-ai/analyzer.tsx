@@ -542,7 +542,11 @@ export function Analyzer() {
           <h1 style={titleStyle}>Tu reporte de estilo</h1>
         </div>
 
-        <ResultsView results={results} />
+        <ResultsView
+          results={results}
+          showProducts
+          gender={formData.genero === "no_binario" ? undefined : formData.genero}
+        />
 
         <div style={{ marginBottom: 14 }}>
           <ReportActions results={results} analysisId={analysisId} />

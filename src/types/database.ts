@@ -1,4 +1,7 @@
+import type { ScrapedProduct } from "@/lib/scrapers/types";
+
 export type ReportStatus = "pending" | "completed" | "failed";
+export type CachedProducts = ScrapedProduct[];
 
 export interface StyleReportInput {
   genero: "masculino" | "femenino" | "no_binario";
@@ -128,6 +131,44 @@ export interface Database {
           grasa_corporal?: number | null;
           grasa_visceral?: number | null;
         };
+        Relationships: [];
+      };
+      product_cache: {
+        Row: {
+          id: string;
+          cache_key: string;
+          results: CachedProducts;
+          brand: string | null;
+          cached_at: string;
+        };
+        Insert: {
+          id?: string;
+          cache_key: string;
+          results: CachedProducts;
+          brand?: string | null;
+          cached_at?: string;
+        };
+        Update: {
+          results?: CachedProducts;
+          cached_at?: string;
+        };
+        Relationships: [];
+      };
+      scraper_errors: {
+        Row: {
+          id: string;
+          brand: string | null;
+          error: string | null;
+          url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          brand?: string | null;
+          error?: string | null;
+          url?: string | null;
+        };
+        Update: Record<string, never>;
         Relationships: [];
       };
     };

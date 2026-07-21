@@ -60,7 +60,11 @@ export default async function HistorialDetailPage({
 
       {report.status === "completed" && report.result ? (
         <>
-          <ResultsView results={report.result} />
+          <ResultsView
+            results={report.result}
+            showProducts
+            gender={report.input.genero === "no_binario" ? undefined : report.input.genero}
+          />
           <div className="mb-6">
             <ReportActions
               results={report.result}
