@@ -63,6 +63,7 @@ export interface Database {
           result: StyleReportResult | null;
           summary: string | null;
           photo_paths: Record<string, string>;
+          analysis_id: string | null;
           error: string | null;
           created_at: string;
         };
@@ -74,6 +75,7 @@ export interface Database {
           result?: StyleReportResult | null;
           summary?: string | null;
           photo_paths?: Record<string, string>;
+          analysis_id?: string | null;
           error?: string | null;
         };
         Update: {
@@ -81,7 +83,50 @@ export interface Database {
           result?: StyleReportResult | null;
           summary?: string | null;
           photo_paths?: Record<string, string>;
+          analysis_id?: string | null;
           error?: string | null;
+        };
+        Relationships: [];
+      };
+      analyses: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          results: StyleReportResult;
+          is_public: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          results: StyleReportResult;
+          is_public?: boolean;
+        };
+        Update: {
+          is_public?: boolean;
+        };
+        Relationships: [];
+      };
+      progress_entries: {
+        Row: {
+          id: string;
+          user_id: string;
+          peso: number | null;
+          grasa_corporal: number | null;
+          grasa_visceral: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          peso?: number | null;
+          grasa_corporal?: number | null;
+          grasa_visceral?: number | null;
+        };
+        Update: {
+          peso?: number | null;
+          grasa_corporal?: number | null;
+          grasa_visceral?: number | null;
         };
         Relationships: [];
       };
@@ -94,3 +139,5 @@ export interface Database {
 }
 
 export type StyleReportRow = Database["public"]["Tables"]["style_reports"]["Row"];
+export type AnalysisRow = Database["public"]["Tables"]["analyses"]["Row"];
+export type ProgressEntryRow = Database["public"]["Tables"]["progress_entries"]["Row"];

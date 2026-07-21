@@ -121,6 +121,14 @@ export async function POST(request: Request) {
       .trim();
     const result = JSON.parse(clean) as StyleReportResult;
 
+    const { data: analysis, error: analysisError } = await supabase
+      .from("analyses")
+      .insert({ user_id: user.id, results: result, is_public: true })
+      .select()
+      .single();
+
+    if (analysisError) throw new Error(analysisError.message);
+
     const { error: updateError } = await supabase
       .from("style_reports")
       .update({
@@ -128,12 +136,13 @@ export async function POST(request: Request) {
         result,
         summary: result.resumen,
         photo_paths: photoPaths,
+        analysis_id: analysis.id,
       })
       .eq("id", report.id);
 
     if (updateError) throw new Error(updateError.message);
 
-    return NextResponse.json({ id: report.id, result });
+    return NextResponse.json({ id: report.id, analysisId: analysis.id, result });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error al analizar";
     await supabase

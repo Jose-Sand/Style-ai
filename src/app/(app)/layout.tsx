@@ -29,6 +29,9 @@ export default async function AppLayout({
             <Link href="/historial" className="text-[#A098B0] hover:text-[#F0EBE0]">
               Historial
             </Link>
+            <Link href="/progreso" className="text-[#A098B0] hover:text-[#F0EBE0]">
+              Mi Progreso
+            </Link>
             <form action={signOut}>
               <button
                 type="submit"

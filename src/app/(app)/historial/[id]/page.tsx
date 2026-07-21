@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ResultsView } from "@/components/style-ai/results-view";
+import { ReportActions } from "@/components/style-ai/report-actions";
 import type { StyleReportRow } from "@/types/database";
 
 export default async function HistorialDetailPage({
@@ -58,7 +59,16 @@ export default async function HistorialDetailPage({
       )}
 
       {report.status === "completed" && report.result ? (
-        <ResultsView results={report.result} />
+        <>
+          <ResultsView results={report.result} />
+          <div className="mb-6">
+            <ReportActions
+              results={report.result}
+              createdAt={report.created_at}
+              analysisId={report.analysis_id}
+            />
+          </div>
+        </>
       ) : report.status === "failed" ? (
         <p className="text-[#E0A0A0]">
           Este análisis falló{report.error ? `: ${report.error}` : "."}

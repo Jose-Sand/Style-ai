@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { G, LOADING_STEPS, PHOTO_SLOTS } from "@/lib/style-ai/constants";
 import { PhotoSlot, type PhotoState } from "./photo-slot";
 import { ResultsView } from "./results-view";
+import { ReportActions } from "./report-actions";
 import type { StyleReportInput, StyleReportResult } from "@/types/database";
 
 type Step = "upload" | "data" | "analyzing" | "results";
@@ -114,6 +115,7 @@ export function Analyzer() {
     tipoPiel: "mixta",
   });
   const [results, setResults] = useState<StyleReportResult | null>(null);
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [loadLabel, setLoadLabel] = useState(LOADING_STEPS[0]);
@@ -183,6 +185,7 @@ export function Analyzer() {
       setLoadLabel("¡Análisis completo!");
       setTimeout(() => {
         setResults(data.result);
+        setAnalysisId(data.analysisId ?? null);
         setStep("results");
       }, 700);
     } catch (err) {
@@ -541,6 +544,10 @@ export function Analyzer() {
 
         <ResultsView results={results} />
 
+        <div style={{ marginBottom: 14 }}>
+          <ReportActions results={results} analysisId={analysisId} />
+        </div>
+
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button
             style={{ ...btnS, fontSize: 13 }}
@@ -549,6 +556,7 @@ export function Analyzer() {
               setStep("upload");
               setPhotos({});
               setResults(null);
+              setAnalysisId(null);
               setError(null);
             }}
           >
