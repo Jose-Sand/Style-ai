@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { G, LOADING_STEPS, PHOTO_SLOTS } from "@/lib/style-ai/constants";
 import { PhotoSlot, type PhotoState } from "./photo-slot";
+import { compressImage } from "@/lib/style-ai/compress-image";
 import { ResultsView } from "./results-view";
 import { ReportActions } from "./report-actions";
 import type { StyleReportInput, StyleReportResult } from "@/types/database";
@@ -129,9 +130,10 @@ export function Analyzer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handlePhotoUpload = (slotId: string, file: File) => {
-    const preview = URL.createObjectURL(file);
-    setPhotos((p) => ({ ...p, [slotId]: { file, preview } }));
+  const handlePhotoUpload = async (slotId: string, file: File) => {
+    const compressed = await compressImage(file);
+    const preview = URL.createObjectURL(compressed);
+    setPhotos((p) => ({ ...p, [slotId]: { file: compressed, preview } }));
   };
 
   const removePhoto = (slotId: string) =>
