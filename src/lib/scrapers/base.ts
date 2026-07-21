@@ -4,8 +4,15 @@ import type { BrandId } from "./types";
 const CHROME_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-const RATE_LIMIT_MS = Number(process.env.SCRAPER_RATE_LIMIT_MS ?? 3000);
-const REQUEST_TIMEOUT_MS = 15000;
+// Vélez is a lightweight public JSON API meant for exactly this kind of
+// traffic (it's what the storefront's own frontend calls on every
+// search), not an HTML page being scraped — so a few requests per
+// second is normal, not abusive. It's also kept short because the
+// product-recommend route has to finish inside Vercel's ~10s serverless
+// ceiling; see run-search.ts.
+const RATE_LIMIT_MS = Number(process.env.SCRAPER_RATE_LIMIT_MS ?? 400);
+const REQUEST_TIMEOUT_MS = 4000;
+const MAX_ATTEMPTS = 2;
 
 // Serializes requests per hostname so concurrent queries against the same
 // brand never fire faster than RATE_LIMIT_MS apart, even within one
@@ -35,10 +42,10 @@ async function waitForRateLimit(hostname: string) {
 
 /**
  * Fetches JSON from a brand's public endpoint with per-domain rate
- * limiting, a real Chrome UA, a 15s timeout, and up to 3 attempts on
- * transient failures (network errors, 429, 5xx). Never throws — callers
- * get `null` on failure so a single brand's outage can't break the rest
- * of the search.
+ * limiting, a real Chrome UA, a short timeout, and up to
+ * MAX_ATTEMPTS tries on transient failures (network errors, 429, 5xx).
+ * Never throws — callers get `null` on failure so a single brand's
+ * outage can't break the rest of the search.
  */
 export async function fetchJsonPolite<T>(
   url: string,
@@ -47,7 +54,7 @@ export async function fetchJsonPolite<T>(
 ): Promise<T | null> {
   const hostname = new URL(url).hostname;
 
-  for (let attempt = 1; attempt <= 3; attempt++) {
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     await waitForRateLimit(hostname);
 
     const controller = new AbortController();
@@ -66,7 +73,7 @@ export async function fetchJsonPolite<T>(
       clearTimeout(timeout);
 
       if (res.status === 429 || res.status >= 500) {
-        if (attempt < 3) continue;
+        if (attempt < MAX_ATTEMPTS) continue;
         await logScraperError(brand, `HTTP ${res.status}`, url);
         return null;
       }
@@ -78,7 +85,7 @@ export async function fetchJsonPolite<T>(
       return (await res.json()) as T;
     } catch (err) {
       clearTimeout(timeout);
-      if (attempt >= 3) {
+      if (attempt >= MAX_ATTEMPTS) {
         const message = err instanceof Error ? err.message : "Unknown error";
         await logScraperError(brand, message, url);
         return null;

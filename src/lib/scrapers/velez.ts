@@ -68,15 +68,41 @@ function toScrapedProduct(
   };
 }
 
+function searchUrl(query: string, limit: number): string {
+  return `${SEARCH_BASE}?ft=${encodeURIComponent(query)}&_from=0&_to=${limit - 1}`;
+}
+
+// Vélez's `ft=` search matches all terms conjunctively against a fairly
+// narrow indexed text (title/category, not per-SKU color). Verified
+// against the live API: "mocasin" and "camisa oxford" return results,
+// but "mocasin azul" or "reloj acero plateado" reliably return zero —
+// one color/material word is often enough to zero out an otherwise-valid
+// query, and sometimes needs dropping two words to recover ("reloj acero
+// plateado" → "reloj acero" → "reloj"). Progressively drop the last word
+// and retry until something comes back or we're down to one word.
+function queryVariants(query: string): string[] {
+  const words = query.trim().split(/\s+/).filter(Boolean);
+  const variants: string[] = [];
+  for (let end = words.length; end >= 1; end--) {
+    variants.push(words.slice(0, end).join(" "));
+  }
+  return variants;
+}
+
 export const velezAdapter: BrandAdapter = {
   id: "velez",
   label: "Vélez",
   categories: ["ropa", "zapatos", "accesorios"],
   async search(params: SearchParams): Promise<ScrapedProduct[]> {
     const limit = Math.min(params.limit ?? 8, 20);
-    const url = `${SEARCH_BASE}?ft=${encodeURIComponent(params.query)}&_from=0&_to=${limit - 1}`;
 
-    const data = await fetchJsonPolite<VtexProduct[]>(url, "velez");
+    let data: VtexProduct[] | null = null;
+    const variants = queryVariants(params.query);
+    for (let i = 0; i < variants.length; i++) {
+      data = await fetchJsonPolite<VtexProduct[]>(searchUrl(variants[i], limit), "velez");
+      if (data && data.length > 0) break;
+    }
+
     if (!data) return [];
 
     return data

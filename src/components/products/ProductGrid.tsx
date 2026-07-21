@@ -93,13 +93,9 @@ export function ProductGrid({
       ) : error ? (
         <p className="text-sm text-[#6A6080]">No encontramos productos ahora.</p>
       ) : products.length === 0 ? (
-        <div className="flex items-center gap-3 text-sm text-[#6A6080]">
-          <span
-            className="h-4 w-4 animate-spin rounded-full border-2 border-[#C9A84C]/30"
-            style={{ borderTopColor: GOLD }}
-          />
-          Buscando productos para ti...
-        </div>
+        <p className="text-sm text-[#6A6080]">
+          No encontramos productos para esta búsqueda todavía.
+        </p>
       ) : (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {products.map((product) => (

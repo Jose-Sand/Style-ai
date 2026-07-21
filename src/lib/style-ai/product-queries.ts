@@ -25,17 +25,18 @@ Paleta de colores favorables: ${result.colores.favorables.join(", ")}
 Genera queries de búsqueda para encontrar productos en tiendas colombianas.
 Responde ÚNICAMENTE con JSON válido, sin markdown ni backticks:
 {
-  "ropa": ["query1", "query2", "query3"],
+  "ropa": ["query1", "query2"],
   "zapatos": ["query1", "query2"],
   "accesorios": ["query1"]
 }
 
 Reglas estrictas:
-- Máximo 3 palabras por query
+- Máximo 2 palabras por query, sin color (el buscador hace match exacto de
+  todas las palabras y el color casi nunca está indexado como texto)
 - En español
-- Genérico pero específico (para que funcione en cualquier tienda)
-- Buenos: "camisa oxford azul", "pantalon chino beige", "zapato mocasin"
-- Malos: "camisa de cuadros con botones dorados manga larga"`;
+- Genérico: tipo de prenda + máximo un calificativo (corte, material, estilo)
+- Buenos: "camisa oxford", "pantalon chino", "zapato mocasin", "camisa lino"
+- Malos: "camisa oxford azul marino", "camisa de cuadros con botones dorados manga larga"`;
 }
 
 function isStringArray(value: unknown): value is string[] {
@@ -47,7 +48,7 @@ function sanitizeQueries(list: unknown): string[] {
   return list
     .map((q) => q.trim())
     .filter((q) => q.length > 0 && q.split(/\s+/).length <= 3)
-    .slice(0, 5);
+    .slice(0, 2);
 }
 
 /**
