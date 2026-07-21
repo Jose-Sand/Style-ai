@@ -5,7 +5,10 @@ import { searchQueriesForCategory } from "@/lib/scrapers/run-search";
 import type { StyleReportResult } from "@/types/database";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+// Kept at the Vercel Hobby-plan ceiling — the internal budgets in
+// product-queries.ts and run-search.ts are tuned to return well before
+// this, so a slow brand/API never turns into a hard platform 504.
+export const maxDuration = 10;
 
 interface RequestBody {
   result?: StyleReportResult;

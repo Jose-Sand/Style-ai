@@ -10,10 +10,12 @@ export interface CategorySearchParams {
   budgetMs?: number;
 }
 
-const DEFAULT_BUDGET_MS = Math.max(
-  Number(process.env.SCRAPER_TIMEOUT_MS ?? 25000) - 3000,
-  5000
-);
+// Vercel's Hobby plan hard-caps a serverless function at ~10s regardless
+// of the `maxDuration` the route declares — so this budget has to be
+// short enough that our own code returns gracefully well before the
+// platform kills the function outright (which shows up as a raw 504,
+// not our "no products found" empty state).
+const DEFAULT_BUDGET_MS = Number(process.env.SCRAPER_TIMEOUT_MS ?? 4000);
 
 /**
  * Runs every query for one category against the relevant brand adapters,

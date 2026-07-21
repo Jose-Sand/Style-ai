@@ -1,4 +1,4 @@
-import { anthropic, STYLE_AI_MODEL } from "@/lib/anthropic";
+import { anthropic, FAST_MODEL } from "@/lib/anthropic";
 import type { StyleReportResult } from "@/types/database";
 
 export interface ProductQueries {
@@ -60,11 +60,14 @@ export async function generateProductQueries(
   result: StyleReportResult
 ): Promise<ProductQueries> {
   try {
-    const message = await anthropic.messages.create({
-      model: STYLE_AI_MODEL,
-      max_tokens: 512,
-      messages: [{ role: "user", content: buildPrompt(result) }],
-    });
+    const message = await anthropic.messages.create(
+      {
+        model: FAST_MODEL,
+        max_tokens: 512,
+        messages: [{ role: "user", content: buildPrompt(result) }],
+      },
+      { timeout: 4000 }
+    );
 
     const raw = message.content.find((b) => b.type === "text")?.text ?? "";
     const clean = raw

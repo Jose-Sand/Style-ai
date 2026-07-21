@@ -4,7 +4,8 @@ import { searchQueriesForCategory } from "@/lib/scrapers/run-search";
 import type { BrandId, ProductCategory, ScrapedProduct } from "@/lib/scrapers/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+// See recommend/route.ts — kept at the Vercel Hobby-plan ceiling.
+export const maxDuration = 10;
 
 const CATEGORIES: ProductCategory[] = ["ropa", "skincare", "zapatos", "accesorios"];
 
